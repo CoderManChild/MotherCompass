@@ -1,6 +1,6 @@
 import json
 from flask import Flask, request
-from db import db, Mother, Provider, create_hardcoded
+from backend.db import db, Mother, Provider, create_hardcoded
 from flask_sqlalchemy import SQLAlchemy
 
 # define db filename
@@ -210,6 +210,33 @@ def remove_provider_from_mother(mother_id):
     return success_response({"mother": mother.serialize()})
 
 
+"""
+Query providers by state. 
+"""
+@app.route("/api/mothers/<int:mother_id>/providers/", methods=["GET"])
+def query_by_state(mother_id):
+    state_name = request.args.get('state') #extract from query parameters, not body since not POST
+    if not state_name:
+        return failure_response("No state_name provided")
+    states = set("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
+        "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa",
+        "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan",
+        "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
+        "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma",
+        "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee",
+        "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")
+    
+    if state_name not in states:
+        return failure_response("Invalid statename")
+    
+    providers = Provider.query.filter(Provider.state_name==state_name)
+    if not providers:
+        return success_response("No providers in this state") #not necc. failure -- not internal error
+    #We serialize every provider in the list, displaying their information
+    providers_data = [provider.serialize(include_mothers=False) for provider in providers]
+    return success_response({"List of providers": providers_data})
+
+
 #-------PROVIDERS--------#
 
 
@@ -372,6 +399,11 @@ def remove_mother_from_provider(provider_id):
     provider.mothers.remove(mother_val) #Remove the mother from the provider's list of mothers 
     db.session.commit() 
     return success_response({"provider": provider.serialize()})
+
+
+
+
+
 
 # run the app
 if __name__ == "__main__":
