@@ -2,6 +2,24 @@ import json
 from flask import Flask, request
 from backend.db import db, Mother, Provider, create_hardcoded
 from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
+import os
+import requests
+import vertexai
+from vertexai.generative_models import GenerativeModel
+
+# TODO(developer): Update and un-comment below line
+# project_id = "PROJECT_ID"
+
+vertexai.init(project=project_id, location="us-central1")
+
+model = GenerativeModel(model_name="gemini-1.5-flash-001")
+
+response = model.generate_content(
+    "What's a good name for a flower shop that specializes in selling bouquets of dried flowers?"
+)
+
+print(response.text)
 
 # define db filename
 app = Flask(__name__) #make a Flask instance
@@ -11,6 +29,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = '' # FIX WITH POSTGRESQL LINK
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 
+# Load API key, and any other environ variables from .env file
+load_dotenv()
 
 
 # initialize app
@@ -235,6 +255,57 @@ def query_by_state(mother_id):
     #We serialize every provider in the list, displaying their information
     providers_data = [provider.serialize(include_mothers=False) for provider in providers]
     return success_response({"List of providers": providers_data})
+
+"""
+Give recommendation based on preference Information. Requires all 4 fields (Cravings, Pains/Nausea, Thoughts/Concerns, and Other Info/Dietary Restrictions)
+to be provided.
+"""
+@app.route("/api/mothers/<int:mother_id>/recommend/", methods=["GET"])
+def recommend_preferences(mother_id):
+    cravings = request.args.get('cravings')
+    pains_nausea = request.args.get('pains_nausea')
+    thoughts_concerns = request.args.get('thoughts_concerns')
+    other_info_dietary_restrictions = request.args.get('other_info_dietary_restrictions') #this could be null for the recommendation
+
+    if not cravings:
+        return failure_response("No cravings found", 400)
+    if not pains_nausea:
+        return failure_response("No pain/nausea found", 400)
+    if not thoughts_concerns:
+        return failure_response("No thoughts/concerns found", 400)
+    
+    api_key = os.getenv('GEMINI_API_KEY')
+    if not api_key:
+        return failure_response("No api_key found", 500)
+    
+    # Construct a prompt for Gemini
+    prompt = f"""
+    I am a pregnant woman with the following preferences:
+    
+    - **Cravings:** {cravings}
+    - **Pains/Nausea:** {pains_nausea}
+    - **Thoughts/Concerns:** {thoughts_concerns}
+    - **Other Info/Dietary Restrictions:** {other_info_dietary_restrictions or 'None'}
+    
+    Please give me a recommendation for a Quick Recipe, a Stretch/Light Exercise, and a Mindful/Peaceful Quote
+    based on this information in JSON format.
+    """
+
+    project_id = "MotherCompass"  
+    location = "us-east4" 
+
+    # Initialize Vertex AI with project, location, and api key
+    vertexai.init(project=project_id, location=location, credentials=api_key)
+
+    # Load the Gemini model
+    model = GenerativeModel(model_name="gemini-1.5-flash-001")
+
+    response = model.generate_content(prompt)
+
+    if not response:
+        return failure_response("Problem with Gemini Access", 500)
+    else:
+        return success_response(response) #return the JSON recommendation
 
 
 #-------PROVIDERS--------#

@@ -27,20 +27,37 @@ class Mother(db.Model):
     DOB = db.Column(db.Date, nullable=True) #this id DOB of baby. If not given birth yet, urge them to put 1st of expected month.
     providers = db.relationship('Provider', secondary=mother_provider_association, backref='mothers')
 
-    def serialize(self):
-        return {
+    #THE 4 PREFRENCE INFORMATION. THIS CAN BE NULL
+    cravings = db.Column(db.String(255))
+    pains_nausea = db.Column(db.String(255))
+    thoughts_concerns = db.Column(db.String(255))
+    other_info_dietary_restrictions = db.Column(db.String(255))
+
+    #add include_providers in case we are accessing from opposite side.
+    def serialize(self, include_providers = True):
+        data =  {
             'id': self.id,
             'username': self.username,
             'full_name': self.full_name,
             'email': self.email,
-            'role': self.role,
             'public_or_private': self.public_or_private,
             'opt_in_ads': self.opt_in_ads,
             'prev_children': self.prev_children,
             'deliver_yet': self.deliver_yet,
-            'DOB': self.DOB.isoformat() ,
-            'providers': [provider.serialize() for provider in self.providers]
+            'DOB': self.DOB.isoformat(), 
+
+            #In serialization, truncate to first 25 characters if below preference information is given. 
+            'cravings': (self.cravings[:25] + '...') if self.cravings and len(self.cravings) > 25 else self.cravings,
+            'pains_nausea': (self.pains_nausea[:25] + '...') if self.pains_nausea and len(self.pains_nausea) > 25 else self.pains_nausea,
+            'thoughts_concerns': (self.thoughts_concerns[:25] + '...') if self.thoughts_concerns and len(self.thoughts_concerns) > 25 else self.thoughts_concerns,
+            'other_info_dietary_restrictions': (self.other_info_dietary_restrictions[:25] + '...') if self.other_info_dietary_restrictions and len(self.other_info_dietary_restrictions) > 25 else self.other_info_dietary_restrictions,
+
         }
+        if include_providers:
+            data["providers"] = [provider.serialize(include_mothers=False) for provider in self.providers]
+        return data
+    
+
 # Define Provider model
 class Provider(db.Model):
     __tablename__ = 'providers'
