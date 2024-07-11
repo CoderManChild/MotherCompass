@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mother's Compass</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <img src="logo.png" alt="Mother's Compass Logo">
+                <h1>Mother's Compass</h1>
+            </div>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="chat.html">Group Chat</a>
+            </nav>
+        </div>
+    </header>
+    <div class="container">
+        <section class="chat-container">
+            <h1 class="chat-title">Mother's Compass Group Chat</h1>
+            <div class="chat-box">
+                <div class="message received">
+                    <p>Dr. Smith (OB/GYN): Welcome to the group chat, how can we assist you today?</p>
+                </div>
+                <div class="message sent">
+                    <p>Mother: Thank you! I'm looking for advice on newborn care.</p>
+                </div>
+                <div class="message received">
+                    <p>Nurse Mary (Certified Nurse-Midwife): Make sure to keep track of feeding times and diaper changes.</p>
+                </div>
+            </div>
+            <div class="input-box">
+                <input type="text" placeholder="Type your message here...">
+                <button>Send</button>
+            </div>
+        </section>
+        <aside class="sidebar" id="sidebar">
+            <h2>Events</h2>
+            <ul id="events-list">
+                <li>July 15: Newborn Care Workshop</li>
+                <li>August 1: Breastfeeding Basics</li>
+                <li>September 10: Postpartum Recovery</li>
+            </ul>
+            <h2>Participants</h2>
+            <ul>
+                <li>Dr. Smith (OB/GYN)</li>
+                <li>Nurse Mary (CNM)</li>
+                <li>Mother</li>
+            </ul>
+            <button id="add-event-button">Add Event</button>
+        </aside>
+        <div class="hamburger-menu" id="hamburger-menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+    <script>
+        document.getElementById('hamburger-menu').onclick = function() {
+            var sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        };
+
+        document.getElementById('add-event-button').onclick = function() {
+            var event = prompt("Enter your event:");
+            if (event) {
+                var eventsList = document.getElementById('events-list');
+                var newEvent = document.createElement('li');
+                newEvent.textContent = event;
+                eventsList.appendChild(newEvent);
+            }
+        };
+
+        document.getElementById('add-news-button').onclick = function() {
+            var news = prompt("Enter your news:");
+            if (news) {
+                var newsList = document.getElementById('news-list');
+                var newNews = document.createElement('li');
+                newNews.textContent = news;
+                newsList.appendChild(newNews);
+            }
+        };
+    </script>
+</body>
+</html>
