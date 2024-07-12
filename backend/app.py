@@ -8,21 +8,9 @@ import requests
 import vertexai
 from vertexai.generative_models import GenerativeModel
 
-# TODO(developer): Update and un-comment below line
-# project_id = "PROJECT_ID"
-
-vertexai.init(project=project_id, location="us-central1")
-
-model = GenerativeModel(model_name="gemini-1.5-flash-001")
-
-response = model.generate_content(
-    "What's a good name for a flower shop that specializes in selling bouquets of dried flowers?"
-)
-
-print(response.text)
-
 # define db filename
 app = Flask(__name__) #make a Flask instance
+
 
 # setup config
 app.config["SQLALCHEMY_DATABASE_URI"] = '' # FIX WITH POSTGRESQL LINK
@@ -471,40 +459,7 @@ def remove_mother_from_provider(provider_id):
     db.session.commit() 
     return success_response({"provider": provider.serialize()})
 
-#------POSTS------
-@app.route("/api/posts/", methods=["POST"])
-def create_post():
-    body = json.loads(request.data)
-    title = body.get('title')
-    content = body.get('content')
-    mother_id = body.get('mother_id')
 
-    if title is None:
-        return failure_response("No title provided", 400)
-    if content is None:
-        return failure_response("No content provided", 400)
-    if mother_id is None:
-        return failure_response("No mother_id provided", 400)
-    
-    mother = Mother.query.get(mother_id)
-    if mother is None:
-        return failure_response("Mother not found", 404)
-
-    new_post = Post(
-        title=title,
-        content=content,
-        mother_id=mother_id
-    )
-
-    db.session.add(new_post)
-    db.session.commit()
-
-    return success_response(new_post.serialize(), 201)
-
-@app.route("/api/posts/", methods=["GET"])
-def get_posts():
-    posts = [p.serialize() for p in Post.query.all()]
-    return success_response(posts)
 
 
 
