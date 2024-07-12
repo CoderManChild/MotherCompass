@@ -19,7 +19,6 @@ class Mother(db.Model):
     password = db.Column(db.String, nullable=False)
     full_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
-    role = db.Column(db.String, nullable=False)
     public_or_private = db.Column(db.Boolean, nullable=False, default=False)
     opt_in_ads = db.Column(db.Boolean, nullable=False, default=False)
     prev_children = db.Column(db.Integer, nullable=False, default=0)
