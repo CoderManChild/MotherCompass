@@ -26,6 +26,7 @@ class Mother(db.Model):
     deliver_yet = db.Column(db.Boolean, nullable=False, default=False)
     DOB = db.Column(db.Date, nullable=True) #this id DOB of baby. If not given birth yet, urge them to put 1st of expected month.
     providers = db.relationship('Provider', secondary=mother_provider_association, backref='mothers')
+    posts = db.relationship('Post', backref='mother', lazy=True)
 
     #THE 4 PREFRENCE INFORMATION. THIS CAN BE NULL
     cravings = db.Column(db.String(255))
@@ -84,7 +85,23 @@ class Provider(db.Model):
             'diploma_date': self.diploma_date.isoformat(),
             'mothers': [mother.serialize() for mother in self.mothers]
         }
+class Post(db.Model):
+    __tablename__ = 'posts'
 
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=date.utcnow)
+    mother_id = db.Column(db.Integer, db.ForeignKey('mothers.id'), nullable=False)
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'content': self.content,
+            'created_at': self.created_at.isoformat(),
+            'mother_id': self.mother_id,
+        }
 # Function to create hardcoded mothers and providers with associations at start.
 def create_hardcoded_mothers_and_providers():
     if Mother.query.count() == 0 and Provider.query.count() == 0:
@@ -161,12 +178,18 @@ def create_hardcoded_mothers_and_providers():
 
         for data in mothers_data:
             provider_usernames = data.pop('provider_usernames')  # Remove provider_usernames list from data -- we end up storing the providers as a whole in 'providers'
+            posts_data = data.pop('posts')
             mother = Mother(**data)
             for username in provider_usernames:
                 provider = providers_dict.get(username) 
                 if provider:
                     mother.providers.append(provider) #add relationship to association table between Mother and Provider instance
             db.session.add(mother)
+            db.session.flush()
+            
+            for post_data in posts_data:
+                post = Post(**post_data, mother_id=mother.id)
+                db.session.add(post)
 
         db.session.commit()
 
