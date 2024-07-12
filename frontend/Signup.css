@@ -1,0 +1,25 @@
+h1 {
+    margin-top: 50px;
+    display: flex;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+}
+
+#form {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+form {
+    margin-top: -250px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    flex-direction: column;
+}
