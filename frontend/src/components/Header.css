@@ -1,0 +1,47 @@
+header {
+    width: 100%;
+    padding: 10px 0;
+    margin-bottom: 20px;
+  }
+  
+  .header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1000px; /* Adjusted max-width to match the container */
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .logo {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo img {
+    height: 50px;
+    margin-right: 10px;
+  }
+  
+  header h1 {
+    font-size: 24px;
+    color: #FFB6C1; /* Light pink */
+    margin: 0;
+  }
+  
+  nav {
+    text-align: right;
+  }
+  
+  nav a {
+    color: #FFB6C1; /* Light pink */
+    margin: 0 15px;
+    text-decoration: none;
+    font-size: 18px;
+  }
+  
+  nav a:hover {
+    color: #FF6F91; /* Vibrant pink */
+  }
+  

@@ -1,0 +1,50 @@
+.sidebar {
+    flex: 1;
+    background-color: #2C3E50; /* Darker blue */
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .sidebar h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #FFB6C1; /* Light pink */
+    margin-bottom: 10px;
+  }
+  
+  .sidebar ul {
+    list-style-type: none;
+    padding: 0;
+    margin-bottom: 20px;
+    width: 100%;
+  }
+  
+  .sidebar li {
+    margin-bottom: 10px;
+  }
+  
+  .sidebar a {
+    color: #FFB6C1; /* Light pink */
+    text-decoration: none;
+    font-size: 16px;
+  }
+  
+  .sidebar a:hover {
+    color: #FF6F91; /* Vibrant pink */
+  }
+  
+  .add-content {
+    margin-top: 40px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+  }
+  
+  .add-content input[type="text"],
+  .add-content button {
+    margin-right: 10px;
+  }
+  

@@ -1,0 +1,17 @@
+.hamburger-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+  }
+  
+  .hamburger-menu span {
+    width: 30px;
+    height: 3px;
+    background-color: #FFB6C1; /* Light pink */
+  }
+  
+  .sidebar.active {
+    display: block;
+  }
+  
