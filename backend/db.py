@@ -19,8 +19,8 @@ class Mother(db.Model):
     password = db.Column(db.String, nullable=False)
     full_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
-    public_or_private = db.Column(db.Boolean, nullable=False, default=False)
-    opt_in_ads = db.Column(db.Boolean, nullable=False, default=False)
+    public_or_private = db.Column(db.Boolean, nullable=True, default=False)
+    opt_in_ads = db.Column(db.Boolean, nullable=True, default=False)
     prev_children = db.Column(db.Integer, nullable=False, default=0)
     deliver_yet = db.Column(db.Boolean, nullable=False, default=False)
     DOB = db.Column(db.Date, nullable=True) #this id DOB of baby. If not given birth yet, urge them to put 1st of expected month.
@@ -28,10 +28,10 @@ class Mother(db.Model):
     posts = db.relationship('Post', backref='mother', lazy=True)
 
     #THE 4 PREFRENCE INFORMATION. THIS CAN BE NULL
-    cravings = db.Column(db.String(255))
-    pains_nausea = db.Column(db.String(255))
-    thoughts_concerns = db.Column(db.String(255))
-    other_info_dietary_restrictions = db.Column(db.String(255))
+    cravings = db.Column(db.String(255), nullable=True)
+    pains_nausea = db.Column(db.String(255), nullable=True)
+    thoughts_concerns = db.Column(db.String(255), nullable=True)
+    other_info_dietary_restrictions = db.Column(db.String(255), nullable=True)
 
     #add include_providers in case we are accessing from opposite side.
     def serialize(self, include_providers = True):
