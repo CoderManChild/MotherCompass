@@ -22,12 +22,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv('DATABASE_URI')
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 
-
-
-
 # initialize app
 db.init_app(app)
-
 
 with app.app_context():
     db.create_all() #Makes all predefined datbase tables
@@ -54,7 +50,7 @@ def hello_world():
 
 """
 Route to create the mother. Returns error code 400 if fields not provided, otherwise makes the new Mother, commits it to the database, and
-returns a 201 success code along with the serialization.
+returns a 201 success code along with the serialization. DO NOT PROVIDE PROVIDERS HERE.
 """
 @app.route("/api/mothers/", methods=["POST"])
 def create_mother():
@@ -68,7 +64,6 @@ def create_mother():
     prev_children = body.get('prev_children', 0)
     deliver_yet = body.get('deliver_yet', False) #default is expecting mother
     DOB = body.get('DOB')  # This should be in the format 'YYYY-MM-DD'
-    provider_names = body.get('providers', [])  # List of provider IDs
 
     # Check for required fields, and non-duplicates for user-name or full-name.
     if username is None and Mother.query.filter_by(username=username).first() is not None:
@@ -92,16 +87,6 @@ def create_mother():
         deliver_yet=deliver_yet,
         DOB=DOB,
     )
-
-    # Add providers if any
-    for provider_fullname in provider_names:
-        provider = Provider.query.filter_by(full_name=provider_fullname).first() 
-
-        #NOTE -- Due to this syntax, we must ensure no duplicates in name, and probably username.
-
-        if provider:
-            new_mother.providers.append(provider) #for the field that is list of providers, append all registered providers
-
     # Add new mother to the session and commit
     db.session.add(new_mother)
     db.session.commit()
@@ -132,23 +117,6 @@ def delete_mother(id):
 
 
 
-#NOTE: Functionality to change information -- tbd whether implmeneted on frontend
-
-# """
-# Returns serialization of an updated user who changed their password
-# """
-# @app.route("/api/users/<int:user_id>/update/", methods=["POST"])
-# def change_password(user_id):
-#     body = json.loads(request.data)
-#     password = body.get('password')
-#     if password is None:
-#         return failure_response("No new password provided", 400)
-#     user = User.query.get(user_id)
-#     if user is None:
-#         return failure_response("User not found")
-#     user.password = password
-#     db.session.commit()
-#     return success_response(user.serialize())
 
 """
 Check if a mother with provided username and password exists. I
@@ -172,56 +140,98 @@ def get_spec_mother():
     
     return success_response(Mother.serialize(mother_val)) #return serialized with all fields
 
+
 """
-Returns the list of providers for logged-in mother. Non-recursive serialization for mothers associated to each provider.
+Route to connect a provider to a mother
+"""
+@app.route("/api/mothers/<int:mother_id>/connect/", methods=["POST"])
+def connect_provider_to_mother(mother_id):
+    body = request.get_json()
+
+    # Retrieve mother and provider IDs from request body
+    provider_id = body.get("provider_id")
+
+    # Ensure provider_id is provided
+    if not provider_id:
+        return failure_response({"error": "Provider ID is required"}, 400)
+
+    # Fetch mother and provider from database
+    mother = Mother.query.get(mother_id)
+    provider = Provider.query.get(provider_id)
+
+    # Check if mother and provider exist
+    if not mother:
+        return failure_response({"error": f"Mother with ID {mother_id} not found"})
+
+    if not provider:
+        return failure_response({"error": f"Provider with ID {provider_id} not found"})
+
+    # Add provider to mother's list of providers
+    mother.providers.append(provider)
+
+    # Commit the changes to the database
+    db.session.commit()
+
+    # Serialize the updated mother object
+    updated_mother = mother.serialize()
+
+    # Return the updated mother as JSON response
+    return success_response(updated_mother)
+
+
+
+# Route to remove a provider from a mother
+@app.route("/api/mothers/<int:mother_id>/remove-provider/", methods=["POST"])
+def remove_provider_from_mother(mother_id):
+    body = request.get_json()
+
+    # Retrieve provider ID from request body
+    provider_id = body.get("provider_id")
+
+    # Ensure provider_id is provided
+    if not provider_id:
+        return failure_response({"error": "Provider ID is required"}, 400)
+
+    # Fetch mother and provider from database
+    mother = Mother.query.get(mother_id)
+    provider = Provider.query.get(provider_id)
+
+    # Check if mother and provider exist
+    if not mother:
+        return failure_response({"error": f"Mother with ID {mother_id} not found"})
+
+    if not provider:
+        return failure_response({"error": f"Provider with ID {provider_id} not found"})
+
+    # Remove provider from mother's list of providers
+    mother.providers.remove(provider)
+
+    # Commit the changes to the database
+    db.session.commit()
+
+    return success_response(provider)
+
+
+
+"""
+Get all providers of a mother
 """
 @app.route("/api/mothers/<int:mother_id>/providers/", methods=["GET"])
-def get_mother_providers(mother_id):
+def get_providers_of_mother(mother_id):
+    # Fetch mother from database
     mother = Mother.query.get(mother_id)
-    if mother is None:
-        return failure_response("Mother not found")
+
+    # Check if mother exists
+    if not mother:
+        return failure_response({"error": f"Mother with ID {mother_id} not found"})
+
+    # Access providers associated with this mother
     providers = mother.providers
-    providers_data = [Provider.serialize(provider, include_mothers=False) for provider in providers] #don't want to return list of mothers of a doctor
-    return success_response({"providers": providers_data})
 
+    # Serialize providers 
+    serialized_providers = [provider.serialize() for provider in providers]
 
-"""
-Add a provider to a logged-in mother, by fullname
-"""
-@app.route("/api/mothers/<int:mother_id>/providers/", methods=["POST"])
-def add_provider_to_mother(mother_id):
-    mother = Mother.query.get(mother_id)
-    if mother is None:
-        return failure_response("Mother not found")
-    body = json.loads(request.data)
-    full_name = body.get('full_name')
-    if full_name is None:
-        return failure_response("No Full Name added", 400)
-    provider_val = Provider.query.filter(Provider.full_name==full_name).first()
-    if provider_val is None or provider_val in mother.providers:
-        return failure_response("No Valid provider or Already associated", 400)
-    mother.providers.append(provider_val) #add the provider to the mother's list of providers 
-    db.session.commit() 
-    return success_response({"mother": mother.serialize()})
-
-"""
-Remove a provider from a logged-in mother, by full-name.
-"""
-@app.route("/api/mothers/<int:mother_id>/providers/", methods=["DEL"])
-def remove_provider_from_mother(mother_id):
-    mother = Mother.query.get(mother_id)
-    if mother is None:
-        return failure_response("Mother not found")
-    body = json.loads(request.data)
-    full_name = body.get('full_name')
-    if full_name is None:
-        return failure_response("No Full Name added", 400)
-    provider_val = Provider.query.filter(Provider.full_name==full_name).first()
-    if provider_val is None or provider_val not in mother.providers:
-        return failure_response("No Valid provider or Not associated", 400)
-    mother.providers.remove(provider_val) #Remove the provider from the mother's list of providers
-    db.session.commit() 
-    return success_response({"mother": mother.serialize()})
+    return success_response(serialized_providers)
 
 
 """
@@ -303,6 +313,104 @@ def recommend_preferences(mother_id):
 
 
 #-------PROVIDERS--------#
+
+
+"""
+Get all mothers a provider cares for
+"""
+@app.route("/api/providers/<int:provider_id>/mothers/", methods=["GET"])
+def get_mothers_of_provider(provider_id):
+    # Fetch provider from database
+    provider = Provider.query.get(provider_id)
+
+    # Check if provider exists
+    if not provider:
+        return failure_response({"error": f"Provider with ID {provider_id} not found"}), 404
+
+    # Access mothers associated with this provider
+    mothers = provider.mothers
+
+    serialized_mothers = [mother.serialize() for mother in mothers]
+
+    return success_response(serialized_mothers)
+
+
+"""
+Route to remove mother from provider
+"""
+@app.route("/api/providers/<int:provider_id>/remove-mother/", methods=["POST"])
+def remove_mother_from_provider(provider_id):
+    body = request.get_json()
+
+    # Retrieve mother ID from request body
+    mother_id = body.get("mother_id")
+
+    # Ensure mother_id is provided
+    if not mother_id:
+        return failure_response({"error": "Mother ID is required"}, 400)
+
+    # Fetch provider and mother from database
+    provider = Provider.query.get(provider_id)
+    mother = Mother.query.get(mother_id)
+
+    # Check if provider and mother exist
+    if not provider:
+        return failure_response({"error": f"Provider with ID {provider_id} not found"})
+
+    if not mother:
+        return failure_response({"error": f"Mother with ID {mother_id} not found"})
+
+    # Remove mother from provider's list of mothers
+    provider.mothers.remove(mother)
+
+    # Commit the changes to the database
+    db.session.commit()
+
+    return success_response(mother)
+
+
+
+"""
+Route to connect a mother to a provider
+"""
+@app.route("/api/providers/<int:provider_id>/connect/", methods=["POST"])
+def connect_mother_to_provider(provider_id):
+    body = request.get_json()
+
+    # Retrieve mother ID from request body
+    mother_id = body.get("mother_id")
+
+    # Ensure mother_id is provided
+    if not mother_id:
+        return failure_response({"error": "Mother ID is required"}, 400)
+
+    # Fetch provider and mother from database
+    provider = Provider.query.get(provider_id)
+    mother = Mother.query.get(mother_id)
+
+    # Check if provider and mother exist
+    if not provider:
+        return failure_response({"error": f"Provider with ID {provider_id} not found"})
+
+    if not mother:
+        return failure_response({"error": f"Mother with ID {mother_id} not found"})
+
+    # Add mother to provider's list of mothers
+    provider.mothers.append(mother)
+
+    # Commit the changes to the database
+    db.session.commit()
+
+    # Serialize the updated provider object
+    updated_provider = provider.serialize()
+
+    # Return the updated provider as JSON response
+    return success_response(updated_provider)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
 
 
 """
@@ -466,19 +574,19 @@ def remove_mother_from_provider(provider_id):
     return success_response({"provider": provider.serialize()})
 
 #-----POSTS------
-@app.route("/api/posts/", methods=["POST"])
-def create_post():
+"""
+Route to create a post -- by a logged-in mother
+"""
+@app.route("/api/posts/<int:mother_id>", methods=["POST"])
+def create_post(mother_id):
     body = json.loads(request.data)
     title = body.get('title')
     content = body.get('content')
-    mother_id = body.get('mother_id')
 
     if title is None:
         return failure_response("No title provided", 400)
     if content is None:
         return failure_response("No content provided", 400)
-    if mother_id is None:
-        return failure_response("No mother_id provided", 400)
 
     mother = Mother.query.get(mother_id)
     if mother is None:
@@ -499,9 +607,6 @@ def create_post():
 def get_posts():
     posts = [p.serialize() for p in Post.query.all()]
     return success_response(posts)
-
-
-
 
 
 # run the app

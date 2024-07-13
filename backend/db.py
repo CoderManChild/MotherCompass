@@ -55,7 +55,7 @@ class Mother(db.Model):
             'pains_nausea': (self.pains_nausea[:25] + '...') if self.pains_nausea and len(self.pains_nausea) > 25 else self.pains_nausea,
             'thoughts_concerns': (self.thoughts_concerns[:25] + '...') if self.thoughts_concerns and len(self.thoughts_concerns) > 25 else self.thoughts_concerns,
             'other_info_dietary_restrictions': (self.other_info_dietary_restrictions[:25] + '...') if self.other_info_dietary_restrictions and len(self.other_info_dietary_restrictions) > 25 else self.other_info_dietary_restrictions,
-
+            'posts': [post.serialize() for post in self.posts]
         }
         if include_providers:
             data["providers"] = [provider.serialize(include_mothers=False) for provider in self.providers]
