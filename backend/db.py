@@ -1,11 +1,15 @@
 from flask_sqlalchemy import SQLAlchemy
-from datetime import date
+import time
+import datetime
+from sqlalchemy import func
+
 
 # Initialize SQLAlchemy instance
 db = SQLAlchemy()
 
 # Association table for many-to-many relationship between Mother and Provider
-mother_provider_association = db.Table('mother_provider_association',
+mother_provider_association = db.Table(
+    'mother_provider_association',
     db.Column('mother_id', db.Integer, db.ForeignKey('mothers.id'), primary_key=True),
     db.Column('provider_id', db.Integer, db.ForeignKey('providers.id'), primary_key=True)
 )
@@ -71,8 +75,8 @@ class Provider(db.Model):
     state_name = db.Column(db.String, nullable=True)
     diploma_date = db.Column(db.Date, nullable=True)
 
-    def serialize(self):
-        return {
+    def serialize(self,include_mothers = True):
+        data = {
             'id': self.id,
             'username': self.username,
             'full_name': self.full_name,
@@ -80,15 +84,18 @@ class Provider(db.Model):
             'license_number': self.license_number,
             'state_name': self.state_name,
             'diploma_date': self.diploma_date.isoformat(),
-            'mothers': [mother.serialize() for mother in self.mothers]
         }
+        if include_mothers:
+            data["mothers"] = [mother.serialize(include_providers=False) for mother in self.mothers]
+        return data
+    
 class Post(db.Model):
     __tablename__ = 'posts'
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=date.utcnow)
+    created_at= db.Column(db.DateTime(timezone=True), server_default=func.now())
     mother_id = db.Column(db.Integer, db.ForeignKey('mothers.id'), nullable=False)
 
     def serialize(self):
@@ -99,9 +106,57 @@ class Post(db.Model):
             'created_at': self.created_at.isoformat(),
             'mother_id': self.mother_id,
         }
-# Function to create hardcoded mothers and providers with associations at start.
-def create_hardcoded_mothers_and_providers():
-    if Mother.query.count() == 0 and Provider.query.count() == 0:
+    
+
+"""
+Creates few starting Mother, Provider, Post, Comments, etc. (NOTE: ADD REMAINDER) for demo
+"""
+def create_hardcoded():
+    try:
+        if not (Mother.query.count() == 0 and Provider.query.count() == 0 and Post.query.count() == 0):
+            return  # Abort if data already exists
+
+        # Providers data
+        providers_data = [
+            {
+                'username': 'provider1',
+                'password': 'password1',
+                'full_name': 'Provider One',
+                'email': 'provider1@example.com',
+                'license_number': '12345',
+                'state_name': 'California',
+                'diploma_date': datetime.date(2000, 1, 1)
+            },
+            {
+                'username': 'provider2',
+                'password': 'password2',
+                'full_name': 'Provider Two',
+                'email': 'provider2@example.com',
+                'license_number': '67890',
+                'state_name': 'New York',
+                'diploma_date': datetime.date(2005, 5, 5)
+            },
+            {
+                'username': 'provider3',
+                'password': 'password2',
+                'full_name': 'Provider Three',
+                'email': 'provider2@example.com',
+                'license_number': '34839',
+                'state_name': 'New York',
+                'diploma_date': datetime.date(2005, 5, 5)
+            }
+        ]
+
+        # Add providers to database
+        providers_dict = {}
+        for data in providers_data:
+            provider = Provider(**data)
+            db.session.add(provider)
+            providers_dict[provider.username] = provider
+
+        db.session.commit()  # Commit providers first
+
+        # Mothers data
         mothers_data = [
             {
                 'username': 'mother1',
@@ -112,8 +167,7 @@ def create_hardcoded_mothers_and_providers():
                 'opt_in_ads': False,
                 'prev_children': 1,
                 'deliver_yet': True,
-                'DOB': date(2024, 5, 15),
-                'provider_usernames': ['provider1', 'provider2']  # List of provider usernames
+                'DOB': datetime.date(2024, 5, 15)
             },
             {
                 'username': 'mother2',
@@ -124,8 +178,7 @@ def create_hardcoded_mothers_and_providers():
                 'opt_in_ads': True,
                 'prev_children': 0,
                 'deliver_yet': False,
-                'DOB': date(2024, 10, 1),
-                'provider_usernames': ['provider1']  # List of provider usernames
+                'DOB': datetime.date(2024, 10, 1)
             },
             {
                 'username': 'mother3',
@@ -136,57 +189,47 @@ def create_hardcoded_mothers_and_providers():
                 'opt_in_ads': True,
                 'prev_children': 2,
                 'deliver_yet': False,
-                'DOB': date(2025, 1, 1),
-                'provider_usernames': ['provider2']  # List of provider usernames
+                'DOB': datetime.date(2025, 1, 1)
             }
         ]
 
-        providers_data = [
+        # Add mothers to database
+        for data in mothers_data:
+
+            mother = Mother(**data)
+            db.session.add(mother)
+
+        db.session.commit()  # Commit mothers 
+        #not adding associations in hard-coded
+
+        # Posts data
+        posts_data = [
             {
-                'username': 'provider1',
-                'password': 'password1',
-                'full_name': 'Provider One',
-                'email': 'provider1@example.com',
-                'license_number': '12345',
-                'state_name': 'California',
-                'diploma_date': date(2000, 1, 1)
+                'title': 'First Post',
+                'content': 'This is the content of the first post.',
+                'mother_id': 1
             },
             {
-                'username': 'provider2',
-                'password': 'password2',
-                'full_name': 'Provider Two',
-                'email': 'provider2@example.com',
-                'license_number': '67890',
-                'state_name': 'New York',
-                'diploma_date': date(2005, 5, 5)
+                'title': 'Second Post',
+                'content': 'This is the content of the second post.',
+                'mother_id': 1
+            },
+            {
+                'title': 'Third Post',
+                'content': 'This is the content of the third post.',
+                'mother_id': 2
             }
         ]
 
-        # Do providers first, because we need them on hand for the providers list on mother's side
-        
-        #Note intentional choice -- mothers can choose which providers to add relationship with for chat, not vice versa (privacy)
-        
-        providers_dict = {}
-        for data in providers_data:
-            provider = Provider(**data) #instantiate Provider object with this data
-            db.session.add(provider)
-            providers_dict[provider.username] = provider
-            #We add all the providers to the session, and we also keep track of them in providers_dict
+        # Add posts to database
+        for data in posts_data:
+            post = Post(**data)
+            db.session.add(post)
 
-        for data in mothers_data:
-            provider_usernames = data.pop('provider_usernames')  # Remove provider_usernames list from data -- we end up storing the providers as a whole in 'providers'
-            posts_data = data.pop('posts')
-            mother = Mother(**data)
-            for username in provider_usernames:
-                provider = providers_dict.get(username) 
-                if provider:
-                    mother.providers.append(provider) #add relationship to association table between Mother and Provider instance
-            db.session.add(mother)
-            db.session.flush()
-            
-            for post_data in posts_data:
-                post = Post(**post_data, mother_id=mother.id)
-                db.session.add(post)
+        db.session.commit()  # Commit posts
 
-        db.session.commit()
+        print("Data initialization successful!")
 
+    except Exception as e:
+        db.session.rollback()  # Rollback in case of any exception
+        print(f"Data initialization failed: {str(e)}")

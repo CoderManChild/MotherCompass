@@ -1,28 +1,34 @@
 import json
 from flask import Flask, request
-from backend.db import db, Mother, Provider, create_hardcoded
+from db import db, Mother, Provider, Post, create_hardcoded
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
 import requests
 import vertexai
+from google.cloud import aiplatform
 from vertexai.generative_models import GenerativeModel
 
 # define db filename
 app = Flask(__name__) #make a Flask instance
 
 
-# setup config
-app.config["SQLALCHEMY_DATABASE_URI"] = '' # FIX WITH POSTGRESQL LINK
+# Load API key, and any other environ variables from .env file
+load_dotenv()
+
+# POSTGRESQL configuration
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv('DATABASE_URI')
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 
-# Load API key, and any other environ variables from .env file
-load_dotenv()
+
 
 
 # initialize app
 db.init_app(app)
+
+
 with app.app_context():
     db.create_all() #Makes all predefined datbase tables
     create_hardcoded() #makes default providers and mothers
@@ -493,6 +499,7 @@ def create_post():
 def get_posts():
     posts = [p.serialize() for p in Post.query.all()]
     return success_response(posts)
+
 
 
 
