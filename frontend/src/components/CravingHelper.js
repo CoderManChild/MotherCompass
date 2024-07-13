@@ -7,46 +7,28 @@ const CravingHelper = () => {
   const [diet, setDiet] = useState('vegan');
   const [output, setOutput] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const generatedOutput = {
-      recipe: {
-        name: "Vegan Orange & Coconut Pudding",
-        ingredients: [
-          "1 can (13.5 oz) full-fat coconut milk, chilled overnight",
-          "1/2 cup vegan orange juice",
-          "1/4 cup maple syrup",
-          "1 teaspoon vanilla extract",
-          "Pinch of salt",
-          "1/4 cup chopped candied orange peel (optional)"
-        ],
-        instructions: [
-          "Scoop out the solid coconut cream from the chilled can, leaving the liquid behind.",
-          "In a mixing bowl, beat the coconut cream until fluffy.",
-          "Add the orange juice, maple syrup, vanilla extract, and salt to the coconut cream.",
-          "Beat until smooth and creamy.",
-          "Fold in the candied orange peel, if using.",
-          "Pour the pudding into individual serving bowls and refrigerate for at least 2 hours or until set.",
-          "Serve chilled."
-        ]
-      },
-      stretch: {
-        name: "Upper Back and Shoulder Release",
-        description: "This gentle stretch can help release tension in your upper back and shoulders.",
-        instructions: [
-          "Stand with your feet hip-width apart.",
-          "Interlace your fingers behind your back, palms facing out.",
-          "Lift your arms up and back, keeping your shoulders relaxed.",
-          "Hold for 30 seconds, breathing deeply.",
-          "Release your arms and repeat 2-3 times."
-        ]
-      },
-      quote: {
-        text: "“The journey of a thousand miles begins with a single step.” - Lao Tzu",
-        meaning: "This quote reminds you that even though pregnancy might feel long, every day is a step forward. You're making progress with each passing moment."
+    try {
+      const response = await fetch('YOUR_BACKEND_URL_HERE', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          craving,
+          feeling,
+          diet,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
-    };
-    setOutput(generatedOutput);
+      const data = await response.json();
+      setOutput(data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   };
 
   return (
