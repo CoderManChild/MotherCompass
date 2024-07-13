@@ -1,0 +1,124 @@
+.craving-helper {
+  background-color: #F9F9F9;
+  color: #333;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.craving-helper h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+label {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+input[type="text"],
+select {
+  width: calc(100% - 22px); /* Adjusted width to match diet input */
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #ccc 50%);
+  background-position: calc(100% - 10px) calc(1em + 2px), calc(100% - 15px) 0;
+  background-size: 5px 5px;
+  padding-right: 30px;
+  background-repeat: no-repeat;
+}
+
+button {
+  background-color: #FF6F91;
+  color: #fff;
+  border: none;
+  padding: 12px 30px;
+  font-size: 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #FF3E73;
+}
+
+.output {
+  margin-top: 30px;
+  text-align: left;
+}
+
+.output h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.output-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.recipe,
+.stretch,
+.quote {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.recipe h3,
+.stretch h3,
+.quote blockquote {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.recipe h4,
+.stretch ol {
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 15px;
+}
+
+.recipe ul,
+.recipe ol,
+.stretch ol {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.recipe li,
+.stretch li {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.quote blockquote {
+  margin-top: 20px;
+  font-style: italic;
+}
+
+.quote blockquote p {
+  margin-bottom: 0;
+}
