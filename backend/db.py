@@ -106,10 +106,17 @@ class Post(db.Model):
             'created_at': self.created_at.isoformat(),
             'mother_id': self.mother_id,
         }
-    
+
+
+class Event(db.Model):
+    __tablename__ = 'events'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+
 
 """
-Creates few starting Mother, Provider, Post, Comments, etc. (NOTE: ADD REMAINDER) for demo
+Creates few starting Mother, Provider, Post, Events.
 """
 def create_hardcoded():
     try:
@@ -228,6 +235,21 @@ def create_hardcoded():
 
         db.session.commit()  # Commit posts
 
+        # Events data
+        events_data = [
+            {
+                'title': 'First Event -- 6/24',
+            },
+            {
+                'title': 'Second Event -- 6/28',
+            }
+        ]
+        # Add events to database
+        for event in events_data:
+            event = Event(**data)
+            db.session.add(event)
+        db.session.commit()
+        
         print("Data initialization successful!")
 
     except Exception as e:

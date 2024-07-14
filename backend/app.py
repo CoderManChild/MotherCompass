@@ -1,6 +1,6 @@
 import json
 from flask import Flask, request
-from db import db, Mother, Provider, Post, create_hardcoded
+from db import db, Mother, Provider, Post, Event, create_hardcoded
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
@@ -141,6 +141,7 @@ def get_spec_mother():
     return success_response(Mother.serialize(mother_val)) #return serialized with all fields
 
 
+
 """
 Route to connect a provider to a mother
 """
@@ -237,7 +238,7 @@ def get_providers_of_mother(mother_id):
 """
 Query providers by state. 
 """
-@app.route("/api/mothers/<int:mother_id>/providers/", methods=["GET"])
+@app.route("/api/mothers/<int:mother_id>/providers_by_state", methods=["GET"])
 def query_by_state(mother_id):
     state_name = request.args.get('state') #extract from query parameters, not body since not POST
     if not state_name:
@@ -608,6 +609,38 @@ def get_posts():
     posts = [p.serialize() for p in Post.query.all()]
     return success_response(posts)
 
+
+#---------EVENTS-----#
+@app.route("/api/events/", methods=["GET"])
+def get_events():
+    events = [e.serialize() for e in Event.query.all()]
+    return success_response(events)
+
+
+"""
+Route to create a event -- by a logged-in mother
+"""
+@app.route("/api/events/<int:mother_id>", methods=["POST"])
+def create_event(mother_id):
+    body = json.loads(request.data)
+    title = body.get('title')
+
+    if title is None:
+        return failure_response("No title provided", 400)
+
+
+    mother = Mother.query.get(mother_id)
+    if mother is None:
+        return failure_response("Mother not found", 404)
+
+    new_event = Event(
+        title=title,
+    )
+
+    db.session.add(new_event)
+    db.session.commit()
+
+    return success_response(new_event.serialize(), 201)
 
 # run the app
 if __name__ == "__main__":
