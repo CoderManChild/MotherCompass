@@ -10,7 +10,7 @@ const CravingHelper = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('YOUR_BACKEND_URL_HERE', {
+      const response = await fetch('http://127.0.0.1:8000/api/cravings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,3 +114,5 @@ const CravingHelper = () => {
 };
 
 export default CravingHelper;
+
+

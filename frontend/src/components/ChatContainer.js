@@ -11,9 +11,12 @@ const ChatContainer = () => {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/messages');
+      const response = await fetch('http://127.0.0.1:8000/api/posts/');
       const data = await response.json();
-      setMessages(data);
+      if (data.success) {
+        // Assuming the backend returns an array of messages in `data.data`
+        setMessages(data.data);
+      }
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -21,9 +24,9 @@ const ChatContainer = () => {
 
   const sendMessage = async () => {
     if (messageInput.trim() !== '') {
-      const newMessage = { type: 'sent', sender: 'Mother', text: messageInput };
+      const newMessage = { title: 'New Message', content: messageInput, mother_id: 1 }; // example mother_id
       try {
-        const response = await fetch('http://127.0.0.1:5000/messages', {
+        const response = await fetch('http://127.0.0.1:8000/api/posts/1', { // example mother_id
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -31,8 +34,10 @@ const ChatContainer = () => {
           body: JSON.stringify(newMessage)
         });
         const data = await response.json();
-        setMessages([...messages, data]);
-        setMessageInput('');
+        if (data.success) {
+          setMessages([...messages, data.data]);
+          setMessageInput('');
+        }
       } catch (error) {
         console.error('Error sending message:', error);
       }
@@ -45,7 +50,7 @@ const ChatContainer = () => {
       <div className="chat-box">
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.type}`}>
-            <p>{msg.sender}: {msg.text}</p>
+            <p>{msg.title}: {msg.content}</p>
           </div>
         ))}
       </div>
