@@ -576,10 +576,10 @@ def remove_mother_from_provider(provider_id):
 
 #-----POSTS------
 """
-Route to create a post -- by a logged-in mother
+Route to create a post -- by a logged-in mother or provider
 """
-@app.route("/api/posts/<int:mother_id>", methods=["POST"])
-def create_post(mother_id):
+@app.route("/api/posts/<int:id>", methods=["POST"])
+def create_post(id):
     body = json.loads(request.data)
     title = body.get('title')
     content = body.get('content')
@@ -589,9 +589,11 @@ def create_post(mother_id):
     if content is None:
         return failure_response("No content provided", 400)
 
-    mother = Mother.query.get(mother_id)
+    mother = Mother.query.get(id)
     if mother is None:
-        return failure_response("Mother not found", 404)
+        provider = Provider.query.get(id)
+        if provider is None:
+            return failure_response("Mother or Provider not found", 404)
 
     new_post = Post(
         title=title,
@@ -618,10 +620,10 @@ def get_events():
 
 
 """
-Route to create a event -- by a logged-in mother
+Route to create a event -- by a logged-in mother or provider
 """
-@app.route("/api/events/<int:mother_id>", methods=["POST"])
-def create_event(mother_id):
+@app.route("/api/events/<int:id>", methods=["POST"])
+def create_event(id):
     body = json.loads(request.data)
     title = body.get('title')
 
@@ -629,9 +631,11 @@ def create_event(mother_id):
         return failure_response("No title provided", 400)
 
 
-    mother = Mother.query.get(mother_id)
+    mother = Mother.query.get(id)
     if mother is None:
-        return failure_response("Mother not found", 404)
+        provider = Provider.query.get(id)
+        if provider is None:
+            return failure_response("Mother or Provider not found", 404)
 
     new_event = Event(
         title=title,
